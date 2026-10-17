@@ -21,6 +21,9 @@ jobs:
       - name: Download repository code
         uses: actions/checkout@v4
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v4
+
       - name: Validate production configuration
         run: |
           docker compose --env-file "$APP_ENV_FILE" \
