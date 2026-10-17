@@ -1,0 +1,16 @@
+name: Runner check
+
+on:
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: [self-hosted, Linux, X64]
+
+    steps:
+      - name: Confirm runner
+        run: |
+          echo "Runner funcionando correctamente"
+          hostname
+          docker --version
+          docker compose version
