@@ -1,0 +1,44 @@
+name: Deploy Django API
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build and deploy to EC2
+    runs-on: [self-hosted, Linux, X64]
+    timeout-minutes: 15
+
+    env:
+      APP_ENV_FILE: /home/ec2-user/apps/medium-4-docker-postgresql-django/.env
+
+    steps:
+      - name: Download repository code
+        uses: actions/checkout@v4
+
+      - name: Validate production configuration
+        run: |
+          docker compose --env-file "$APP_ENV_FILE" \
+            -f compose.prod.yaml config --quiet
+
+      - name: Build and start containers
+        run: |
+          docker compose --env-file "$APP_ENV_FILE" \
+            -f compose.prod.yaml up -d --build --remove-orphans
+
+      - name: Verify API health
+        run: |
+          for attempt in {1..12}; do
+            if curl -fsS http://127.0.0.1/api/health/; then
+              echo "API desplegada correctamente"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "La API no respondió correctamente"
+          exit 1
